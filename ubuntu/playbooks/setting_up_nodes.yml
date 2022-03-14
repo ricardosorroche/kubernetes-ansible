@@ -1,0 +1,34 @@
+---
+- hosts: all
+  become: yes
+  user: ubuntu
+  vars_files:
+  - env_variables
+  tasks:
+  - name: Docker install
+    shell: curl -fsSL https://get.docker.com | bash
+
+  - name: Add k8s repo key on apt
+    apt_key:
+      url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+      state: present
+
+  - name: Add k8s repo on apt
+    apt_repository:
+      repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      state: present
+
+  - name: Installing required packages
+    apt:
+     name: "{{ packages }}"
+     state: present
+
+  - name: Starting and Enabling the required services
+    service:
+     name: "{{ item }}"
+     state: started
+     enabled: yes
+    with_items: "{{ services }}"
+
+  - name: Enabling Bridge Firewall Rule
+    shell: "echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables"
